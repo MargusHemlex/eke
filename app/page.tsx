@@ -189,7 +189,7 @@ export default function Home() {
           Mobiil: 3 nuppu vertikaalselt stackitud täislaiusega
           Desktop: horisontaalne rida
           ══════════════════════════════════ */}
-      <div className="shrink-0 bg-white border-b border-zinc-200">
+      <div className="shrink-0 border-b border-zinc-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3">
           {/* Mobiil: grid 1 veerg → sm: 3 veergu */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -200,7 +200,7 @@ export default function Home() {
                 className={`flex items-start sm:items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all duration-150
                   ${mode === m.id
                     ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
-                    : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900"
+                    : "bg-[#f9f9f8] border-zinc-200 text-zinc-600 hover:border-zinc-400 hover:text-zinc-900"
                   }`}
               >
                 <ModeIcon id={m.id} active={mode === m.id} />
