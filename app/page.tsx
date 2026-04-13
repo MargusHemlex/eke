@@ -458,12 +458,12 @@ function SentenceResults({ result }: { result: ApiResult }) {
               {s.original && (
                 <div className="flex flex-col gap-1.5 mb-2.5 p-3 rounded-lg bg-zinc-50 border border-zinc-100">
                   <div className="flex items-start gap-2">
-                    <span className="text-[10px] text-zinc-400 font-medium w-5 shrink-0 mt-0.5">Enne</span>
+                    <span className="text-[10px] text-zinc-400 font-medium w-12 shrink-0 mt-0.5">Enne</span>
                     <span className="text-xs font-serif text-zinc-500 italic leading-relaxed">{s.original}</span>
                   </div>
                   <div className="h-px bg-zinc-200" />
                   <div className="flex items-start gap-2">
-                    <span className="text-[10px] text-zinc-400 font-medium w-5 shrink-0 mt-0.5">Pärast</span>
+                    <span className="text-[10px] text-zinc-400 font-medium w-12 shrink-0 mt-0.5">Pärast</span>
                     <span className="text-xs font-serif text-zinc-800 font-medium leading-relaxed">{s.suggestion}</span>
                   </div>
                 </div>
