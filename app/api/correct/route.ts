@@ -18,22 +18,7 @@ REEGLID:
 3. Kõik väljundid EESTI KEELES.
 4. Kontrolli: algustähed, kokku-lahkukirjutus, kirjavahemärgid, võõrsõnad, arvsõnad, lühendid.
 5. ÄRA paranda stiili — ainult õigekirja ja kirjavahemärke.
-
-VÄLJUND — AINULT see JSON (ilma markdown-ita):
-{
-  "correctedText": "Täielik parandatud tekst.",
-  "errors": [
-    {
-      "original": "vigane kirjakuju",
-      "corrected": "õige kirjakuju",
-      "rule": "Reegel X: Reegli nimi",
-      "ruleLink": "https://teatmik.eki.ee/teatmik/eesti-keele-oigekirja-pohireeglid/",
-      "explanation": "Miks vale ja kuidas õigesti (1-2 lauset)."
-    }
-  ],
-  "sentenceSuggestions": [],
-  "contentSuggestions": []
-}`;
+6. Tagasta tulemus submit_analysis tööriista kaudu.`;
 
 const PROMPT_SENTENCE = `Sa oled eesti keele lauseehituse ja stiili ekspert, kes juhendab gümnaasiumiõpilasi riigieksami kirjandiks ette valmistuma.
 
@@ -47,21 +32,7 @@ ANALÜÜSI JÄRGMIST:
 5. **Algus- ja lõpplaused** — kas lause algus on mitmekesine? Väldi "Mina arvan" korduvat algust.
 6. **Kordused** — sama sõna/struktuuri liigne kordamine
 7. **Lauseliikmete järjekord** — rõhk, loogilisus
-
-VÄLJUND — AINULT see JSON (ilma markdown-ita):
-{
-  "correctedText": "Täielik tekst koos laususeehituse parandustega.",
-  "errors": [],
-  "sentenceSuggestions": [
-    {
-      "original": "originaalne lause või fraas tekstist",
-      "suggestion": "parem variant",
-      "type": "V2|lausepikkus|aktiiv-passiiv|sidend|kordus|lausealgus|järjekord",
-      "explanation": "Miks muuta ja mida paranes (1-2 lauset, viide reeglile)."
-    }
-  ],
-  "contentSuggestions": []
-}`;
+8. Tagasta tulemus submit_analysis tööriista kaudu.`;
 
 const PROMPT_CONTENT = `Sa oled eesti keele riigieksami arutleva kirjandi juhendaja ja hindaja.
 
@@ -82,21 +53,66 @@ HINDA:
 4. Punase joone olemasolu
 5. Seisukoha selgus
 6. Mida lisada / muuta / eemaldada
+7. Tagasta tulemus submit_analysis tööriista kaudu.`;
 
-VÄLJUND — AINULT see JSON (ilma markdown-ita):
-{
-  "correctedText": "",
-  "errors": [],
-  "sentenceSuggestions": [],
-  "contentSuggestions": [
-    {
-      "category": "struktuur|argument|näide|seiskoht|punane-joon|kokkuvõte|sissejuhatus",
-      "priority": "kõrge|keskmine|madal",
-      "feedback": "Konkreetne tagasiside mis on praegu (1-2 lauset).",
-      "suggestion": "Konkreetne soovitus mida teha (1-3 lauset)."
-    }
-  ]
-}`;
+// ─────────────────────────────────────────
+// TOOL SCHEMA
+// ─────────────────────────────────────────
+
+const ANALYSIS_TOOL: Anthropic.Tool = {
+  name: "submit_analysis",
+  description: "Tagasta analüüsi tulemus struktureeritud formaadis.",
+  input_schema: {
+    type: "object" as const,
+    properties: {
+      correctedText: {
+        type: "string",
+        description: "Parandatud või täiustatud tekst. Tühi string kui ei rakendu (nt sisu režiimis).",
+      },
+      errors: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            original: { type: "string" },
+            corrected: { type: "string" },
+            rule: { type: "string" },
+            ruleLink: { type: "string" },
+            explanation: { type: "string" },
+          },
+          required: ["original", "corrected", "rule", "explanation"],
+        },
+      },
+      sentenceSuggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            original: { type: "string" },
+            suggestion: { type: "string" },
+            type: { type: "string" },
+            explanation: { type: "string" },
+          },
+          required: ["original", "suggestion", "type", "explanation"],
+        },
+      },
+      contentSuggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            category: { type: "string" },
+            priority: { type: "string", enum: ["kõrge", "keskmine", "madal"] },
+            feedback: { type: "string" },
+            suggestion: { type: "string" },
+          },
+          required: ["category", "priority", "feedback", "suggestion"],
+        },
+      },
+    },
+    required: ["correctedText", "errors", "sentenceSuggestions", "contentSuggestions"],
+  },
+};
 
 const SYSTEM_PROMPTS = {
   grammar: PROMPT_GRAMMAR,
@@ -142,27 +158,21 @@ export async function POST(request: NextRequest) {
       max_tokens: 4096,
       temperature: 0,
       system: SYSTEM_PROMPTS[validMode],
+      tools: [ANALYSIS_TOOL],
+      tool_choice: { type: "tool", name: "submit_analysis" },
       messages: [{ role: "user", content: USER_MESSAGES[validMode](text) }],
     });
 
     const content = message.content[0];
-    if (content.type !== "text") throw new Error("Ootamatu vastuse formaat");
+    if (content.type !== "tool_use") throw new Error("Ootamatu vastuse formaat");
 
-    const jsonStr = content.text
-      .trim()
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/, "")
-      .trim();
-
-    let result;
-    try {
-      result = JSON.parse(jsonStr);
-    } catch {
-      return NextResponse.json(
-        { error: "Vastuse parsimise viga. Proovi lühema tekstiga." },
-        { status: 500 }
-      );
-    }
+    // content.input is already a parsed object — no JSON.parse needed
+    const result = content.input as {
+      correctedText: string;
+      errors: unknown[];
+      sentenceSuggestions: unknown[];
+      contentSuggestions: unknown[];
+    };
 
     // Normalise — ensure all arrays exist
     result.errors ??= [];
