@@ -285,6 +285,183 @@ Kasutatakse hüüdlausetes, käsklausetes ja soovlausetes: *Aitäh!*, *Palun vai
 
 ---
 
+---
+
+## Lauseehitus ja stiil
+
+> Selles osas käsitletakse eesti keele lauseehituse nõudeid riigieksami kirjandi kontekstis. Allikas: EKI käsiraamat, riigieksami hindamisjuhend.
+
+---
+
+### L1. V2-reegel (verb teisel kohal)
+
+**Reegel:** Eesti keeles peab jaatavas põhilauses olema finiitverb (öeldis) **teisel süntaktilisel positsioonil** — olenemata sellest, mis on lauses esimesel kohal.
+
+**Vigane:** `Täna mina läksin poodi.` / `Eile ta ei tulnud koju.`
+**Õige:** `Täna läksin mina poodi.` / `Eile ei tulnud ta koju.`
+
+**Näited:**
+- `Hommikul / sõi / ta / putru.` ✓ (V2)
+- `Sellel suvel / lõi / kuumus / rekordeid.` ✓ (V2)
+- `Mina arvan, et see on vale.` ✓ (põimlause — kõrvallause V2-reegel on erinev)
+
+> **Kõrvallausetes** V2-reegel ei kehti — verb võib olla lõpus: `Ma tean, et ta homme tuleb.`
+
+---
+
+### L2. Lausepikkus ja vaheldus
+
+**Reegel:** Hea tekst vaheldab lühikesi (6–12 sõna) ja pikemaid lauseid (15–25 sõna). Ühetaoline lausepikkus muudab teksti igavaks.
+
+**Probleemid:**
+- **Liiga lühikesed laused** — tekst katkendlik, lapsiku mulje: *Ta tuli. Ta nägi. Ta võitis.*
+- **Liiga pikad laused** — lugeja kaotab mõtte, liiga palju kõrvalklausleid
+- **Monotoonne struktuur** — iga lause sama skeemiga
+
+**Soovitus eksamilauses:**
+1. Alusta lühikese teesiga
+2. Selgita pikema lausega
+3. Too näide keskpika lausega
+4. Tee järeldus lühikesega
+
+---
+
+### L3. Aktiiv vs. passiiv
+
+**Reegel:** Eesti keele kirjandis eelistatakse **aktiivset** tegumood. Liigne passiiv nõrgendab teksti ja varjab tegijat.
+
+**Passiiv (nõrgem):** `Probleem lahendatakse valitsuse poolt.`
+**Aktiiv (tugevam):** `Valitsus lahendab probleemi.`
+
+**Passiiv on ÕIGE kasutada:**
+- Kui tegija on teadmata: `Raamat kirjutati 16. sajandil.`
+- Üldistustes: `Eestis räägitakse eesti keelt.`
+- Ametlikus/teaduslikus tekstis: `Uuring viidi läbi 2024. aastal.`
+
+**Eksamil:** Maksimaalselt 20–25% lausetest võiksid olla passiivses tegumoes.
+
+---
+
+### L4. Sidendite õige kasutamine
+
+**Reegel:** Sidendid ühendavad lauseid ja väljendavad suhteid. Eksamilastel on sageli sidendite valik ühekülgne (ainult *ja*, *aga*).
+
+**Sidendite palett:**
+
+| Suhte tüüp | Sidendid | Näide |
+|---|---|---|
+| Põhjus | *sest, kuna, nimelt* | *Ta hilines, sest buss jäi kinni.* |
+| Eesmärk | *et, selleks et* | *Ta tuli varakult, et kohta saada.* |
+| Tingimus | *kui, juhul kui* | *Kui vihma tuleb, jäämegi koju.* |
+| Vastandus | *aga, kuid, siiski, ometi* | *Ta tahtis tulla, kuid ei saanud.* |
+| Möönlus | *kuigi, ehkki, hoolimata sellest et* | *Kuigi oli väsinud, jätkas ta.* |
+| Järeldus | *seega, seetõttu, järelikult* | *Ta õppis palju, seega sai ta hea hinde.* |
+| Lisamine | *lisaks, peale selle, samuti* | *Lisaks on oluline arvestada...* |
+
+**Viga:** Sama sidendi kordamine. *„Ta tuli ja istus ja vaatas ja..."* → kasuta vaheldust.
+
+---
+
+### L5. Korduste vältimine
+
+**Reegel:** Sama sõna kordamine lähestikku nõrgendab teksti stiili.
+
+**Vigane:** `Probleem on suur probleem. See probleem mõjutab paljusid.`
+**Õige:** `See on tõsine küsimus, mis mõjutab paljusid inimesi.`
+
+**Tehnikad:**
+- Asenda sõna sünonüümiga
+- Asenda pronoomeni või üldistusega (*see nähtus*, *selline olukord*)
+- Kirjuta lause ümber nii, et sõna pole vaja
+
+---
+
+## Arutlev kirjand — riigieksami nõuded
+
+> Riigieksami kirjand hindab nii keelelist korrektsust kui ka mõtlemist. Maksimaalne pikkus 400–600 sõna, aeg 3 tundi.
+
+---
+
+### K1. Kirjandi ülesehitus
+
+**Kohustuslik struktuur:**
+
+```
+SISSEJUHATUS (1 lõik, ~60–80 sõna)
+├── Teema tutvustus — kontekst, taust
+├── Probleemipüstitus — milles seisneb dilemma/küsimus?
+└── Seisukoht — autor võtab SELGELT seisukoha
+
+ARENDUS (2–3 lõiku, ~250–350 sõna)
+├── Argument 1 + tõestus/näide
+├── Argument 2 + tõestus/näide
+└── (Argument 3 / vastuargumendi käsitlus)
+
+KOKKUVÕTE (1 lõik, ~60–80 sõna)
+├── Seisukoha kordamine (uute sõnadega)
+├── Argumentide lühikokkuvõte
+└── Laiem üldistus / tulevikuperspektiiv
+```
+
+---
+
+### K2. Tugevad argumendid
+
+**Argument = väide + tõestus + näide**
+
+| Osa | Näide |
+|---|---|
+| **Väide** | *Sotsiaalmeedial on negatiivne mõju noorte vaimsele tervisele.* |
+| **Tõestus** | *Uuringud näitavad, et pidev võrdlemine teistega tekitab ärevust.* |
+| **Näide** | *Näiteks Ameerika psühholoog Jonathan Haidt on dokumenteerinud...* |
+| **Järeldus** | *Seega tuleb noorte ekraaniaega piirata.* |
+
+**Nõrk argument:** ainult väide ilma tõestuse ja näiteta.
+**Tugev argument:** väide + loogiline tõestus + konkreetne näide.
+
+---
+
+### K3. Näidete kasutamine
+
+**Näidete allikad (sobivad eksamil):**
+- **Ilukirjandus:** *A. H. Tammsaare „Tõde ja õigus"*, *Oskar Luts*, *Jaan Kross*
+- **Ajalugu:** Eesti iseseisvumine, laulev revolutsioon, nõukogude aeg
+- **Päriselu:** isiklik kogemus, ühiskonnaelu, uudised (üldistatud)
+- **Teadus/filosoofia:** tuntud mõtlejad, uuringud (ligikaudselt viidatud)
+
+**Väldi:** väljamõeldud "uuringuid", täpsustamata "kõik inimesed arvavad".
+
+---
+
+### K4. Seisukoht ja punane joon
+
+**Seisukoht** peab olema:
+1. **Selge** — lugeja saab aru, mida autor arvab
+2. **Ühene** — ära kõhkle mõlema poole vahel (v.a kui arutled teadlikult)
+3. **Põhjendatud** — mitte lihtsalt "mulle tundub"
+
+**Punane joon** = ühtne teema, mis läbib kogu kirjandit:
+- Sissejuhatuse seisukoht → arenduslõikude argumendid → kokkuvõtte üldistus
+- Iga lõik peab olema seotud põhiteemaga
+
+**Viga:** Arenduses räägitakse millestki, mis pole sissejuhatusega seotud.
+
+---
+
+### K5. Kõige sagedasemad sisuvead eksamil
+
+| Viga | Selgitus | Lahendus |
+|---|---|---|
+| **Seisukoha puudumine** | Kirjand kirjeldab, ei arutle | Lisa selge "Mina arvan, et..." sissejuhatusse |
+| **Üldlaused ilma näideteta** | "Kõik teavad, et..." | Lisa konkreetne näide/fakt |
+| **Korduvad argumendid** | Sama mõte eri sõnadega 3x | Kasuta erinevaid vaatenurki |
+| **Lõpetamata mõtted** | Alustab punkti, ei lõpeta | Kirjuta iga lõik väide→tõestus→järeldus |
+| **Teema kõrvalejuhtimine** | 2. lõigus räägib teisest asjast | Kontrolli: kas iga lõik toetab põhiteesi? |
+| **Nõrk kokkuvõte** | Lihtsalt kordab sissejuhatust | Lisa uus üldistus, laiem perspektiiv |
+| **Isiklik liialt emotsionaalne** | "See on kohutav ja lubamatu!" | Hoia neutraalne, argumenteeri faktidega |
+
+---
+
 ## Viited ja ressursid
 
 - **EKI teatmik (ametlik, täielik):** [teatmik.eki.ee](https://teatmik.eki.ee/teatmik/eesti-keele-oigekirja-pohireeglid/)
