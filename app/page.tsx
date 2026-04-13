@@ -172,6 +172,20 @@ export default function Home() {
       </nav>
 
       {/* ══════════════════════════════════
+          HERO
+          ══════════════════════════════════ */}
+      <div className="shrink-0 px-4 sm:px-6 pt-6 pb-4 sm:pt-8 sm:pb-5 max-w-5xl mx-auto w-full">
+        <p className="text-lg sm:text-xl font-semibold text-zinc-900 tracking-tight">
+          Tere, Margareth! 👋
+        </p>
+        <p className="text-xs sm:text-sm text-zinc-500 mt-1 max-w-lg leading-relaxed">
+          See abivahend aitab sul valmistuda{" "}
+          <span className="text-zinc-700 font-medium">Eesti keele riigieksamiks (EKE)</span>.
+          Sisesta tekst ja saa kiiret tagasisidet õigekirja, lauseehituse ja sisu kohta.
+        </p>
+      </div>
+
+      {/* ══════════════════════════════════
           MODE SELECTOR
           Mobiil: 3 nuppu vertikaalselt stackitud täislaiusega
           Desktop: horisontaalne rida
