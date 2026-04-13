@@ -189,7 +189,7 @@ export default function Home() {
           Mobiil: 3 nuppu vertikaalselt stackitud täislaiusega
           Desktop: horisontaalne rida
           ══════════════════════════════════ */}
-      <div className="shrink-0 border-b border-zinc-200">
+      <div className="shrink-0">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3">
           {/* Mobiil: grid 1 veerg → sm: 3 veergu */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
