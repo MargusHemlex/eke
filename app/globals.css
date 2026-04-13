@@ -2,9 +2,8 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #09090b;
   --font-serif: Georgia, "Times New Roman", "Palatino Linotype", serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
 html {
@@ -13,19 +12,45 @@ html {
 }
 
 body {
-  background: #ffffff;
-  color: #09090b;
+  background: #0a0a0a;
+  color: #fafafa;
 }
 
-/* Scrollbar — thin & monochrome */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+/* Thin scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+/* Textarea — no resize handle */
+textarea { resize: none; }
+
+/* Smooth card hover */
+.card-hover {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
-::-webkit-scrollbar-track {
-  background: #f4f4f5;
+.card-hover:hover {
+  border-color: #3f3f46;
+  box-shadow: 0 0 0 1px #3f3f46;
 }
-::-webkit-scrollbar-thumb {
-  background: #a1a1aa;
-  border-radius: 2px;
+
+/* Fade-in animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeInUp 0.25s ease forwards;
+}
+
+/* Pulse shimmer for skeleton */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #1c1c1e 25%, #27272a 50%, #1c1c1e 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
 }
