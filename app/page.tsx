@@ -179,8 +179,7 @@ export default function Home() {
           Tere, Margareth! 👋
         </p>
         <p className="text-xs sm:text-sm text-zinc-500 mt-1 max-w-lg leading-relaxed">
-          See abivahend aitab sul valmistuda{" "}
-          <span className="text-zinc-700 font-medium">Eesti keele riigieksamiks (EKE)</span>.
+          See abivahend aitab sul valmistuda Eesti keele lõpueksamiks.
           Sisesta tekst ja saa kiiret tagasisidet õigekirja, lauseehituse ja sisu kohta.
         </p>
       </div>
