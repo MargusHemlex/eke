@@ -155,12 +155,12 @@ export default function Home() {
       <nav className="shrink-0 sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-zinc-900 flex items-center justify-center shrink-0">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold text-zinc-900 tracking-tight">EKI Õigekiri</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" className="shrink-0">
+              <rect width="32" height="32" rx="8" fill="#111110"/>
+              <path d="M16 5 C16 5 17.1 11.2 19.5 13.5 C21.8 15.8 28 16 28 16 C28 16 21.8 16.2 19.5 18.5 C17.2 20.8 16 27 16 27 C16 27 14.8 20.8 12.5 18.5 C10.2 16.2 4 16 4 16 C4 16 10.2 15.8 12.5 13.5 C14.8 11.2 16 5 16 5Z" fill="white"/>
+              <circle cx="24" cy="8" r="1.8" fill="white" opacity="0.5"/>
+            </svg>
+            <span className="text-sm font-semibold text-zinc-900 tracking-tight">EKE Kirjutamise abiline</span>
           </div>
           <Link href="/docs" className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 transition-colors">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
