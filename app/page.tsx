@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 // ─────────────────────────────────────────
@@ -94,36 +94,72 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [result, setResult] = useState<ApiResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMode, setLoadingMode] = useState<Mode | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (e.target.value.length <= MAX_CHARS) setInputText(e.target.value);
   };
 
   const handleModeChange = (newMode: Mode) => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
     setMode(newMode);
     setResult(null);
     setApiError(null);
+    setLoading(false);
+    setLoadingMode(null);
   };
 
   const handleSubmit = async () => {
     if (!inputText.trim() || loading) return;
+
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
     setLoading(true);
+    setLoadingMode(mode);
     setApiError(null);
     setResult(null);
+
     try {
       const res = await fetch("/api/correct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: inputText, mode }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "API viga");
       setResult(data);
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : "Viga. Proovi uuesti.");
+      if (err instanceof Error && err.name === "AbortError") {
+        console.log("Päring katkestati (abort).");
+        return;
+      }
+      const isTimeout = err instanceof Error && err.message.includes("abort");
+      setApiError(
+        isTimeout
+          ? "Päring aegus (30 s). Proovi uuesti."
+          : err instanceof Error
+          ? err.message
+          : "Viga. Proovi uuesti."
+      );
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
+      setLoadingMode(null);
     }
   };
 
@@ -272,7 +308,7 @@ export default function Home() {
                          disabled:opacity-30 disabled:cursor-not-allowed
                          shadow-sm hover:shadow-md transition-all duration-150"
             >
-              {loading ? (
+              {loading && loadingMode === mode ? (
                 <span className="flex items-center justify-center gap-2"><SpinnerIcon />Analüüsin…</span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
