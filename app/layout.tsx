@@ -13,7 +13,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "EKI Õigekirja Abivahend",
+  title: "EKE Kirjutamise Abiline",
   description: "Eesti keele kirjaliku eksami abivahend. Tugineb EKI ametlikele õigekirja põhireeglitele.",
   keywords: ["eesti keel", "õigekiri", "eksam", "EKI", "keelekorrektuur"],
 };
