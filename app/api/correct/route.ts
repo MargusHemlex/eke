@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { logError, getProbableCause } from "@/lib/db";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -134,8 +135,9 @@ const USER_MESSAGES = {
 // ─────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  let body: { text?: string; mode?: string } = {};
   try {
-    const body = await request.json();
+    body = await request.json();
     const { text, mode = "grammar" } = body;
 
     if (!text || typeof text !== "string" || !text.trim()) {
@@ -183,8 +185,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error: unknown) {
     console.error("[/api/correct] viga:", error);
+
+    const message = error instanceof Error ? error.message : "Sisemine serveri viga";
+    const status = (error as { status?: number })?.status ?? null;
+    const text = typeof body?.text === "string" ? body.text : "";
+
+    try {
+      await logError({
+        mode: body?.mode ?? "teadmata",
+        error_type: error instanceof Error ? error.constructor.name : "UnknownError",
+        error_message: message,
+        http_status: status,
+        text_preview: text.slice(0, 200),
+        probable_cause: getProbableCause(status, message),
+      });
+    } catch (dbErr) {
+      console.error("[/api/correct] logimise viga:", dbErr);
+    }
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Sisemine serveri viga" },
+      { error: message },
       { status: 500 }
     );
   }
