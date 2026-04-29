@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { validateEstonianInput, type ValidationResult } from "@/lib/validateInput";
 
 // ─────────────────────────────────────────
 // TYPES
@@ -32,6 +33,8 @@ interface ContentSuggestion {
 }
 
 interface ApiResult {
+  valid?: boolean;
+  reason?: string;
   correctedText: string;
   errors: GrammarError[];
   sentenceSuggestions: SentenceSuggestion[];
@@ -43,69 +46,19 @@ interface ApiResult {
 // ─────────────────────────────────────────
 
 const MAX_CHARS = 5000;
-const MIN_CHARS = 15;
-const MAX_NON_LETTER_RATIO = 0.55;
 
-// ─────────────────────────────────────────
-// INPUT VALIDATION
-// ─────────────────────────────────────────
-
-interface ValidationResult {
-  valid: boolean;
-  message?: string;
-  type?: "error" | "warning";
-}
-
-/**
- * Kontrollib kasutaja sisendit enne API päringut.
- * Eesti tähed: a-z, äöüõšž (ja suurtähed). Mitte-tähed = numbrid, sümbolid, kirjavahemärgid, tühikud.
- */
-function validateInput(text: string): ValidationResult {
-  const trimmed = text.trim();
-
-  // 1. Tühi või liiga lühike
-  if (trimmed.length === 0) {
-    return {
-      valid: false,
-      message: "Palun sisesta vähemalt paar sõna või lauset.",
-      type: "warning",
-    };
-  }
-
-  if (trimmed.length < MIN_CHARS) {
-    return {
-      valid: false,
-      message: "Palun sisesta vähemalt paar sõna või lauset.",
-      type: "warning",
-    };
-  }
-
-  // 2. Loendame eesti tähed vs. mitte-tähed (välja arvatud tühikud, et need ei moonutaks suhet)
-  const withoutSpaces = trimmed.replace(/\s+/g, "");
-  if (withoutSpaces.length === 0) {
-    return {
-      valid: false,
-      message: "Palun sisesta vähemalt paar sõna või lauset.",
-      type: "warning",
-    };
-  }
-
-  const letterRegex = /[a-zäöüõšžA-ZÄÖÜÕŠŽ]/g;
-  const letters = withoutSpaces.match(letterRegex)?.length ?? 0;
-  const nonLetters = withoutSpaces.length - letters;
-  const nonLetterRatio = nonLetters / withoutSpaces.length;
-
-  if (nonLetterRatio > MAX_NON_LETTER_RATIO) {
-    return {
-      valid: false,
-      message:
-        "See ei tundu olevat eestikeelne tekst. Palun sisesta oma päris eksamitekst või lause.",
-      type: "error",
-    };
-  }
-
-  return { valid: true };
-}
+// 9. klassi tasemele sobivad näidislaused (kõik sisaldavad mõnda õigekirja-/grammatikaviga
+// — annavad kasutajale mõtte, mida parandust vajav lause välja näeb).
+const NAIDISLAUSED = [
+  "Eile käisin kontserdil mis oli väga huvitav.",
+  "Õpilased räägivad, et eksamid on rasked aga vajalikud.",
+  "Suvi on minu lemmik aastaaeg sest siis on soe ilm.",
+  "Kui ma olin laps, mängisime sõpradega palju õues.",
+  "Ema küsis, kas ma olen kodutööd teinud aga ma polnud.",
+  "Kooliraamatukogus on palju huvitavaid raamatuid eesti kirjandusest.",
+  "Klassikaaslased aitavad mind, kui ma midagi ei mõista.",
+  "Tänapäeval kasutavad noored palju nutitelefoni ja internetti.",
+];
 
 const MODES: { id: Mode; label: string; shortLabel: string; description: string }[] = [
   {
@@ -163,9 +116,15 @@ export default function Home() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Reaalajas valideerimine (näitame hoiatust alles siis, kui kasutaja on midagi sisestanud)
-  const validation = validateInput(inputText);
-  const showValidation = validationTouched && inputText.trim().length > 0 && !validation.valid;
+  // Frontendi heuristiline valideerimine — AINULT grammar režiimis.
+  // Sentence/content režiimid jätame puutumata (nõuavad pikemaid tekste, oma loogikaga).
+  const validation: ValidationResult =
+    mode === "grammar" ? validateEstonianInput(inputText) : { ok: true };
+  const showValidation =
+    mode === "grammar" &&
+    validationTouched &&
+    inputText.trim().length > 0 &&
+    !validation.ok;
 
   useEffect(() => {
     return () => {
@@ -193,11 +152,13 @@ export default function Home() {
   const handleSubmit = async () => {
     if (!inputText.trim() || loading) return;
 
-    // Eelvalideerimine — ära saada API-sse, kui sisend ei ole korrektne
-    const v = validateInput(inputText);
-    if (!v.valid) {
-      setValidationTouched(true);
-      return;
+    // Eelvalideerimine ainult grammar režiimis — ära saada API-sse, kui sisend on selgelt vigane.
+    if (mode === "grammar") {
+      const v = validateEstonianInput(inputText);
+      if (!v.ok) {
+        setValidationTouched(true);
+        return;
+      }
     }
 
     abortControllerRef.current?.abort();
@@ -250,6 +211,14 @@ export default function Home() {
     setResult(null);
     setApiError(null);
     setValidationTouched(false);
+  };
+
+  const handleAnnaNaide = () => {
+    const juhuslik = NAIDISLAUSED[Math.floor(Math.random() * NAIDISLAUSED.length)];
+    setInputText(juhuslik);
+    setResult(null);
+    setApiError(null);
+    setValidationTouched(true);
   };
 
   const pct = Math.round((inputText.length / MAX_CHARS) * 100);
@@ -347,9 +316,7 @@ export default function Home() {
                             focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.05)]
                             transition-all duration-200
                             ${showValidation
-                              ? validation.type === "error"
-                                ? "border-red-300 focus-within:border-red-400"
-                                : "border-amber-300 focus-within:border-amber-400"
+                              ? "border-amber-300 focus-within:border-amber-400"
                               : "border-zinc-200 focus-within:border-zinc-400"}`}>
               {/* Tühjenda X-nupp paremas ülanurgas */}
               {inputText && (
@@ -381,38 +348,43 @@ export default function Home() {
                 autoComplete="off"
                 className="w-full h-48 sm:h-60 lg:h-72 p-4 sm:p-5 pr-12 font-serif text-base leading-relaxed bg-transparent text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
               />
-              <div className="flex items-center justify-between px-4 py-2.5 border-t border-zinc-100 bg-zinc-50/60">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-zinc-100 bg-zinc-50/60">
                 <div className="flex items-center gap-2">
                   <div className="w-14 h-1 rounded-full bg-zinc-200 overflow-hidden">
                     <div className="h-full rounded-full bg-zinc-500 transition-all duration-300" style={{ width: `${pct}%` }} />
                   </div>
                   <span className="text-[10px] text-zinc-400 tabular-nums">{inputText.length}/{MAX_CHARS}</span>
+                  {mode === "grammar" && (
+                    <button
+                      onClick={handleAnnaNaide}
+                      type="button"
+                      className="ml-1 px-2 py-0.5 rounded-md border border-zinc-300 text-[10px] text-zinc-600
+                                 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-400
+                                 active:bg-zinc-200 transition-colors duration-150"
+                    >
+                      Anna mulle näide
+                    </button>
+                  )}
                 </div>
                 <span className="text-[10px] text-zinc-400 hidden sm:block">⌘↵</span>
               </div>
             </div>
 
-            {/* Valideerimise hoiatus */}
-            {showValidation && validation.message && (
+            {/* Valideerimise hoiatus — kollane (grammar režiim) */}
+            {showValidation && !validation.ok && (
               <div
                 role="alert"
-                className={`fade-in flex items-start gap-2.5 p-3 sm:p-3.5 rounded-xl border text-xs sm:text-sm leading-relaxed
-                  ${validation.type === "error"
-                    ? "bg-red-50 border-red-200 text-red-700"
-                    : "bg-amber-50 border-amber-200 text-amber-800"}`}
+                className="fade-in flex items-start gap-2.5 p-3 sm:p-3.5 rounded-xl border text-xs sm:text-sm leading-relaxed
+                           bg-amber-50 border-amber-200 text-amber-800"
               >
                 <svg
-                  className={`w-4 h-4 mt-0.5 shrink-0 ${validation.type === "error" ? "text-red-500" : "text-amber-500"}`}
+                  className="w-4 h-4 mt-0.5 shrink-0 text-amber-500"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
                   viewBox="0 0 24 24"
                 >
-                  {validation.type === "error" ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  )}
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>{validation.message}</span>
               </div>
@@ -420,7 +392,7 @@ export default function Home() {
 
             <button
               onClick={handleSubmit}
-              disabled={loading || !inputText.trim() || !validation.valid}
+              disabled={loading || !inputText.trim() || !validation.ok}
               className="w-full py-3 sm:py-3.5 rounded-xl bg-zinc-900 text-white text-sm font-semibold
                          hover:bg-zinc-800 active:bg-black
                          disabled:opacity-30 disabled:cursor-not-allowed
@@ -515,21 +487,56 @@ export default function Home() {
 // ─────────────────────────────────────────
 
 function GrammarResults({ result }: { result: ApiResult }) {
+  // Backend tagastas valid: false → kollane hoiatus (Claude tuvastas gibberish'i)
+  if (result.valid === false) {
+    return (
+      <div
+        role="alert"
+        className="fade-in flex items-start gap-2.5 p-3 sm:p-4 rounded-xl border text-xs sm:text-sm leading-relaxed
+                   bg-amber-50 border-amber-200 text-amber-800"
+      >
+        <svg
+          className="w-4 h-4 mt-0.5 shrink-0 text-amber-500"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>
+          {result.reason ||
+            "Sisend ei näi olevat eesti keelne tekst. Proovi kirjutada üks päris lause."}
+        </span>
+      </div>
+    );
+  }
+
+  // 4-värvi loogika päises:
+  //   🟢 emerald  — vigu ei leitud
+  //   🔵 blue     — leitud parandused
+  const hasErrors = result.errors.length > 0;
+  const dotColor = hasErrors ? "bg-blue-500" : "bg-emerald-500";
+
   return (
     <div className="fade-in flex flex-col gap-3">
       {/* Parandatud tekst */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-100 bg-zinc-50/60">
           <span className="text-xs font-medium text-zinc-600 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+            <span className={`w-1.5 h-1.5 rounded-full inline-block ${dotColor}`} />
             Parandatud tekst
           </span>
-          {result.errors.length === 0 && (
+          {!hasErrors ? (
             <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               Vigu ei leitud
+            </span>
+          ) : (
+            <span className="text-[10px] text-blue-600 font-medium tabular-nums">
+              {result.errors.length} {result.errors.length === 1 ? "parandus" : "parandust"}
             </span>
           )}
         </div>

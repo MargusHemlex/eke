@@ -13,7 +13,23 @@ const PROMPT_GRAMMAR = `Sa oled Eesti Keele Instituudi (EKI) ametlik õigekirjae
 ROLL: Paranda eestikeelseid tekste vastavalt EKI ametlikele õigekirja põhireeglitele (63 reeglit).
 Allikas: https://teatmik.eki.ee/teatmik/eesti-keele-oigekirja-pohireeglid/
 
-REEGLID:
+ENNE ÕIGEKIRJA PARANDAMIST hinda, kas sisend on tähenduslik eesti keelne tekst.
+
+Kui sisend EI OLE loetav tekst (juhuslikud tähed, klaviatuurikolksumine,
+mõttetu sümbolite jada nagu "asdfgh" või "sd.fmnsd,.-n.s,admfn"),
+tagasta submit_analysis kaudu:
+  valid: false
+  reason: "Sisend ei näi olevat eesti keelne tekst. Proovi kirjutada üks päris lause."
+  correctedText: "" (tühi)
+  errors: [] (tühi)
+
+Kui sisend ON tähenduslik tekst (isegi kui väga vigane või lühike),
+paranda õigekiri ja tagasta:
+  valid: true
+  correctedText: <parandatud tekst>
+  errors: [...]
+
+REEGLID õigekirja parandamiseks (kui valid: true):
 1. Kasuta AINULT EKI ametlikke reegleid. ÄRA iial leiuta reegleid.
 2. Viita konkreetsele reeglile (nt "Reegel 15: Algustähed kohanimedes").
 3. Kõik väljundid EESTI KEELES.
@@ -66,9 +82,19 @@ const ANALYSIS_TOOL: Anthropic.Tool = {
   input_schema: {
     type: "object" as const,
     properties: {
+      valid: {
+        type: "boolean",
+        description:
+          "Kas sisend on tähenduslik eesti keelne tekst. False ainult siis, kui sisend on juhuslik tähekombinatsioon või mõttetu sümbolite jada (kasutusel ainult grammar režiimis). Kui valid puudub, eeldatakse true.",
+      },
+      reason: {
+        type: "string",
+        description:
+          "Põhjuse selgitus eesti keeles, kui valid: false. Tühi string või puudub, kui valid: true.",
+      },
       correctedText: {
         type: "string",
-        description: "Parandatud või täiustatud tekst. Tühi string kui ei rakendu (nt sisu režiimis).",
+        description: "Parandatud või täiustatud tekst. Tühi string kui ei rakendu (nt sisu režiimis või kui valid: false).",
       },
       errors: {
         type: "array",
@@ -170,6 +196,8 @@ export async function POST(request: NextRequest) {
 
     // content.input is already a parsed object — no JSON.parse needed
     const result = content.input as {
+      valid?: boolean;
+      reason?: string;
       correctedText: string;
       errors: unknown[];
       sentenceSuggestions: unknown[];
@@ -181,6 +209,9 @@ export async function POST(request: NextRequest) {
     result.sentenceSuggestions ??= [];
     result.contentSuggestions ??= [];
     result.correctedText ??= "";
+    // valid puudub vanemates režiimides (sentence/content) → eeldame true
+    if (result.valid === undefined) result.valid = true;
+    result.reason ??= "";
 
     return NextResponse.json(result);
   } catch (error: unknown) {
