@@ -43,6 +43,69 @@ interface ApiResult {
 // ─────────────────────────────────────────
 
 const MAX_CHARS = 5000;
+const MIN_CHARS = 15;
+const MAX_NON_LETTER_RATIO = 0.55;
+
+// ─────────────────────────────────────────
+// INPUT VALIDATION
+// ─────────────────────────────────────────
+
+interface ValidationResult {
+  valid: boolean;
+  message?: string;
+  type?: "error" | "warning";
+}
+
+/**
+ * Kontrollib kasutaja sisendit enne API päringut.
+ * Eesti tähed: a-z, äöüõšž (ja suurtähed). Mitte-tähed = numbrid, sümbolid, kirjavahemärgid, tühikud.
+ */
+function validateInput(text: string): ValidationResult {
+  const trimmed = text.trim();
+
+  // 1. Tühi või liiga lühike
+  if (trimmed.length === 0) {
+    return {
+      valid: false,
+      message: "Palun sisesta vähemalt paar sõna või lauset.",
+      type: "warning",
+    };
+  }
+
+  if (trimmed.length < MIN_CHARS) {
+    return {
+      valid: false,
+      message: "Palun sisesta vähemalt paar sõna või lauset.",
+      type: "warning",
+    };
+  }
+
+  // 2. Loendame eesti tähed vs. mitte-tähed (välja arvatud tühikud, et need ei moonutaks suhet)
+  const withoutSpaces = trimmed.replace(/\s+/g, "");
+  if (withoutSpaces.length === 0) {
+    return {
+      valid: false,
+      message: "Palun sisesta vähemalt paar sõna või lauset.",
+      type: "warning",
+    };
+  }
+
+  const letterRegex = /[a-zäöüõšžA-ZÄÖÜÕŠŽ]/g;
+  const letters = withoutSpaces.match(letterRegex)?.length ?? 0;
+  const nonLetters = withoutSpaces.length - letters;
+  const nonLetterRatio = nonLetters / withoutSpaces.length;
+
+  if (nonLetterRatio > MAX_NON_LETTER_RATIO) {
+    return {
+      valid: false,
+      message:
+        "See ei tundu olevat eestikeelne tekst. Palun sisesta oma päris eksamitekst või lause.",
+      type: "error",
+    };
+  }
+
+  return { valid: true };
+}
 
 const MODES: { id: Mode; label: string; shortLabel: string; description: string }[] = [
   {
@@ -96,8 +159,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [loadingMode, setLoadingMode] = useState<Mode | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [validationTouched, setValidationTouched] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Reaalajas valideerimine (näitame hoiatust alles siis, kui kasutaja on midagi sisestanud)
+  const validation = validateInput(inputText);
+  const showValidation = validationTouched && inputText.trim().length > 0 && !validation.valid;
 
   useEffect(() => {
     return () => {
@@ -106,7 +174,10 @@ export default function Home() {
   }, []);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (e.target.value.length <= MAX_CHARS) setInputText(e.target.value);
+    if (e.target.value.length <= MAX_CHARS) {
+      setInputText(e.target.value);
+      if (!validationTouched) setValidationTouched(true);
+    }
   };
 
   const handleModeChange = (newMode: Mode) => {
@@ -121,6 +192,13 @@ export default function Home() {
 
   const handleSubmit = async () => {
     if (!inputText.trim() || loading) return;
+
+    // Eelvalideerimine — ära saada API-sse, kui sisend ei ole korrektne
+    const v = validateInput(inputText);
+    if (!v.valid) {
+      setValidationTouched(true);
+      return;
+    }
 
     abortControllerRef.current?.abort();
     const controller = new AbortController();
@@ -171,6 +249,7 @@ export default function Home() {
     setInputText("");
     setResult(null);
     setApiError(null);
+    setValidationTouched(false);
   };
 
   const pct = Math.round((inputText.length / MAX_CHARS) * 100);
@@ -264,9 +343,29 @@ export default function Home() {
 
           {/* ── Sisend ── */}
           <div className="flex flex-col gap-3">
-            <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden
-                            focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.05)]
-                            transition-all duration-200">
+            <div className={`relative bg-white rounded-2xl border shadow-sm overflow-hidden
+                            focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.05)]
+                            transition-all duration-200
+                            ${showValidation
+                              ? validation.type === "error"
+                                ? "border-red-300 focus-within:border-red-400"
+                                : "border-amber-300 focus-within:border-amber-400"
+                              : "border-zinc-200 focus-within:border-zinc-400"}`}>
+              {/* Tühjenda X-nupp paremas ülanurgas */}
+              {inputText && (
+                <button
+                  onClick={handleClear}
+                  aria-label="Tühjenda tekst"
+                  title="Tühjenda"
+                  className="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-lg flex items-center justify-center
+                             text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100
+                             transition-colors duration-150"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
               <textarea
                 value={inputText}
                 onChange={handleTextChange}
@@ -280,29 +379,48 @@ export default function Home() {
                 }
                 spellCheck={false}
                 autoComplete="off"
-                className="w-full h-48 sm:h-60 lg:h-72 p-4 sm:p-5 font-serif text-base leading-relaxed bg-transparent text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+                className="w-full h-48 sm:h-60 lg:h-72 p-4 sm:p-5 pr-12 font-serif text-base leading-relaxed bg-transparent text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
               />
               <div className="flex items-center justify-between px-4 py-2.5 border-t border-zinc-100 bg-zinc-50/60">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-14 h-1 rounded-full bg-zinc-200 overflow-hidden">
-                      <div className="h-full rounded-full bg-zinc-500 transition-all duration-300" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="text-[10px] text-zinc-400 tabular-nums">{inputText.length}/{MAX_CHARS}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-14 h-1 rounded-full bg-zinc-200 overflow-hidden">
+                    <div className="h-full rounded-full bg-zinc-500 transition-all duration-300" style={{ width: `${pct}%` }} />
                   </div>
-                  {inputText && (
-                    <button onClick={handleClear} className="text-[10px] text-zinc-400 hover:text-zinc-700 transition-colors">
-                      Tühjenda
-                    </button>
-                  )}
+                  <span className="text-[10px] text-zinc-400 tabular-nums">{inputText.length}/{MAX_CHARS}</span>
                 </div>
                 <span className="text-[10px] text-zinc-400 hidden sm:block">⌘↵</span>
               </div>
             </div>
 
+            {/* Valideerimise hoiatus */}
+            {showValidation && validation.message && (
+              <div
+                role="alert"
+                className={`fade-in flex items-start gap-2.5 p-3 sm:p-3.5 rounded-xl border text-xs sm:text-sm leading-relaxed
+                  ${validation.type === "error"
+                    ? "bg-red-50 border-red-200 text-red-700"
+                    : "bg-amber-50 border-amber-200 text-amber-800"}`}
+              >
+                <svg
+                  className={`w-4 h-4 mt-0.5 shrink-0 ${validation.type === "error" ? "text-red-500" : "text-amber-500"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  {validation.type === "error" ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  )}
+                </svg>
+                <span>{validation.message}</span>
+              </div>
+            )}
+
             <button
               onClick={handleSubmit}
-              disabled={loading || !inputText.trim()}
+              disabled={loading || !inputText.trim() || !validation.valid}
               className="w-full py-3 sm:py-3.5 rounded-xl bg-zinc-900 text-white text-sm font-semibold
                          hover:bg-zinc-800 active:bg-black
                          disabled:opacity-30 disabled:cursor-not-allowed
